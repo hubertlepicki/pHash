@@ -11,6 +11,9 @@ module Phash
   #
   attach_function :ph_dct_imagehash, [:string, :pointer], :int, :blocking => true
 
+  # int ph_mh_imagehash(const char* file, int &len);
+  attach_function :ph_mh_imagehash, [:string, :pointer], :pointer, :blocking => true
+
   # no info in pHash.h
   #
   # int ph_hamming_distance(const ulong64 hash1,const ulong64 hash2);
@@ -19,13 +22,36 @@ module Phash
 
   class << self
     # Get image file hash using <tt>ph_dct_imagehash</tt>
-    def image_hash(path)
+    def image_hash(path, options = {})
       hash_p = FFI::MemoryPointer.new :ulong_long
       if -1 != ph_dct_imagehash(path.to_s, hash_p)
         hash = hash_p.get_uint64(0)
         hash_p.free
 
         ImageHash.new(hash)
+      end
+    end
+
+    def mh_image_hash(path)
+      len = FFI::MemoryPointer.new :int
+      if (hash = ph_mh_imagehash(path.to_s, len)) != nil
+        arr = hash.read_array_of_uint8(72)
+        len.free
+
+        ImageHash.new(arr)
+      end
+    end
+
+    def image_fingerprint(path, type = :pct)
+      if type == :pct
+        val = image_hash(path).data
+        str = val.to_s(2)
+        "#{'0' * (64 - str.length)}#{str}"
+      else
+        mh_image_hash(path).data.map {|i|
+          str = i.to_s(2)
+          "#{'0' * (8 - str.length)}#{str}"
+        }.join('')
       end
     end
 

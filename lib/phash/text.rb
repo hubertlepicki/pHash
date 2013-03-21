@@ -58,7 +58,6 @@ module Phash
         matches_length_p.free
 
         matches = matches_length.times.map{ |i| TxtMatch.new(data + i * TxtMatch.size) }
-        data.free
         matches
       end
     end
