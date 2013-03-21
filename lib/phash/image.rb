@@ -35,7 +35,7 @@ module Phash
     def mh_image_hash(path)
       len = FFI::MemoryPointer.new :int
       if (hash = ph_mh_imagehash(path.to_s, len)) != nil
-        arr = hash.read_array_of_uint8(72)
+        arr = hash.get_array_of_uint8(0,72)
         len.free
 
         ImageHash.new(arr)
@@ -49,6 +49,7 @@ module Phash
         "#{'0' * (64 - str.length)}#{str}"
       else
         mh_image_hash(path).data.map {|i|
+          puts i
           str = i.to_s(2)
           "#{'0' * (8 - str.length)}#{str}"
         }.join('')
