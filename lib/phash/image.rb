@@ -49,7 +49,6 @@ module Phash
         "#{'0' * (64 - str.length)}#{str}"
       else
         mh_image_hash(path).data.map {|i|
-          puts i
           str = i.to_s(2)
           "#{'0' * (8 - str.length)}#{str}"
         }.join('')
