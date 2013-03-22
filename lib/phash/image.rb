@@ -12,7 +12,7 @@ module Phash
   attach_function :ph_dct_imagehash, [:string, :pointer], :int, :blocking => true
 
   # int ph_mh_imagehash(const char* file, int &len);
-  attach_function :ph_mh_imagehash, [:string, :pointer], :pointer, :blocking => true
+  attach_function :ph_mh_imagehash2, [:string, :pointer], :int, :blocking => true
 
   # no info in pHash.h
   #
@@ -26,19 +26,18 @@ module Phash
       hash_p = FFI::MemoryPointer.new :ulong_long
       if -1 != ph_dct_imagehash(path.to_s, hash_p)
         hash = hash_p.get_uint64(0)
-        hash_p.free
-
         ImageHash.new(hash)
       end
     end
 
     def mh_image_hash(path)
-      len = FFI::MemoryPointer.new :int
-      if (hash = ph_mh_imagehash(path.to_s, len)) != nil
-        arr = hash.get_array_of_uint8(0,72)
-        len.free
+      hash_p = FFI::MemoryPointer.new :uint8, 72
 
-        ImageHash.new(arr)
+      ph_mh_imagehash2(path.to_s, hash_p)
+
+      if hash_p != nil
+        arr = hash_p.get_array_of_uint8(0, 72)
+        arr
       end
     end
 
@@ -48,7 +47,7 @@ module Phash
         str = val.to_s(2)
         "#{'0' * (64 - str.length)}#{str}"
       else
-        mh_image_hash(path).data.map {|i|
+        mh_image_hash(path).map {|i|
           str = i.to_s(2)
           "#{'0' * (8 - str.length)}#{str}"
         }.join('')

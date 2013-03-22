@@ -55,7 +55,7 @@ module Phash
 
   extend FFI::Library
 
-  ffi_lib ENV.fetch('PHASH_LIB', 'pHash')
+  ffi_lib "#{File.dirname(__FILE__)}/../ext/libpHash.so"
 
   autoload :Audio, 'phash/audio'
   autoload :Image, 'phash/image'
